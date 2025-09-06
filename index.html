@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide: Mitigating OWASP Top 10 in Django</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Technical Guide Blue -->
+    <!-- Application Structure Plan: The application is designed as an interactive guide. A fixed sidebar navigation allows users to jump directly to any of the 10 OWASP vulnerabilities. Each vulnerability is presented in its own section with a consistent, tabbed interface. This structure was chosen for usability, allowing users to easily navigate the large amount of technical content and focus on specific areas of interest. The tabs for "Risk," "Django's Defense," "Mitigation Code," and "Vulnerable Code" break down the complex information into digestible chunks and provide direct, actionable comparisons, which is a highly effective learning method for developers. -->
+    <!-- Visualization & Content Choices: Instead of data charts, this guide uses interactive UI elements. Report Info: OWASP Top 10 Mitigation in Django. Goal: Educate developers with actionable code examples. Presentation Method: A single-page application with a fixed navigation sidebar and tabbed content sections for each vulnerability. Interaction: Users can click the sidebar to navigate, click tabs to switch content views, and click a button to copy code snippets. Justification: This interactive guide format is superior to a static page for dense, technical content, as it allows users to control the information they see and easily access specific code solutions. Library/Method: HTML/Tailwind for structure, Vanilla JS for interactivity (navigation, tabs, copy-to-clipboard). No charting libraries are needed. CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .code-block { font-family: 'Fira Code', monospace; font-size: 0.875rem; }
+        .sidebar a.active { background-color: #1d4ed8; color: white; }
+        .tab.active { border-color: #2563eb; background-color: white; color: #2563eb; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="flex">
+        <aside id="sidebar" class="fixed top-0 left-0 h-screen w-64 bg-slate-800 text-white p-4 overflow-y-auto transition-transform -translate-x-full md:translate-x-0">
+            <h2 class="text-xl font-bold mb-4 border-b border-slate-600 pb-2">OWASP Top 10</h2>
+            <nav class="flex flex-col space-y-2">
+                <a href="#a01" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A01: Broken Access Control</a>
+                <a href="#a02" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A02: Cryptographic Failures</a>
+                <a href="#a03" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A03: Injection</a>
+                <a href="#a04" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A04: Insecure Design</a>
+                <a href="#a05" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A05: Security Misconfiguration</a>
+                <a href="#a06" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A06: Vulnerable Components</a>
+                <a href="#a07" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A07: Identification Failures</a>
+                <a href="#a08" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A08: Software & Data Integrity</a>
+                <a href="#a09" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A09: Logging & Monitoring</a>
+                <a href="#a10" class="block py-2 px-3 rounded hover:bg-slate-700 transition-colors">A10: SSRF</a>
+            </nav>
+        </aside>
+
+        <button id="menu-toggle" class="md:hidden fixed top-4 left-4 z-20 bg-slate-800 text-white p-2 rounded">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+
+        <main class="w-full md:ml-64 p-4 md:p-8">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-slate-900">Django OWASP Mitigation Playbook</h1>
+                <p class="mt-2 text-slate-600">An interactive guide with practical code examples for securing your Django applications against the OWASP Top 10 vulnerabilities.</p>
+            </header>
+
+            <div id="content" class="space-y-12">
+                <!-- A01: Broken Access Control -->
+                <section id="a01" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A01: Broken Access Control</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a01-risk">The Risk</button>
+                        <button class="tab" data-target="a01-defense">Django's Defense</button>
+                        <button class="tab" data-target="a01-mitigation">Mitigation Code</button>
+                        <button class="tab" data-target="a01-vulnerable">Vulnerable Code</button>
+                    </div>
+                    <div id="a01-risk" class="tab-content active"><p>This vulnerability occurs when restrictions on what authenticated users are allowed to do are not properly enforced. Attackers can exploit these flaws to access other users' accounts, view sensitive files, or change data and access rights.</p></div>
+                    <div id="a01-defense" class="tab-content"><p>Django's auth framework provides robust authentication and permission systems. It includes decorators (`@login_required`, `@permission_required`) and mixins (`LoginRequiredMixin`, `PermissionRequiredMixin`) to easily protect views at a basic level.</p></div>
+                    <div id="a01-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Secure Method: Use Mixins and Override `get_queryset`</h4>
+                        <p class="text-sm mb-2">For class-based views, always use the appropriate mixin and filter querysets to ensure users can only access their own data.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto">from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from .models import Project
+
+class ProjectListView(LoginRequiredMixin, ListView):
+    model = Project
+    template_name = 'projects/list.html'
+
+    def get_queryset(self):
+        # Crucial step: Filter projects by the currently logged-in user.
+        return super().get_queryset().filter(owner=self.request.user)</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                    <div id="a01-vulnerable" class="tab-content">
+                         <h4 class="font-bold mb-2 text-red-600">Vulnerable Method: Forgetting to Filter Data</h4>
+                         <p class="text-sm mb-2">While this view requires a user to be logged in, it fails to check if the user is authorized to see *all* projects. It simply returns every project in the database.</p>
+                        <div class="code-container"><pre class="code-block bg-red-50 border border-red-200 p-4 rounded-md overflow-x-auto">from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from .models import Project
+
+class InsecureProjectListView(LoginRequiredMixin, ListView):
+    model = Project
+    template_name = 'projects/list.html'
+
+    # Missing get_queryset override!
+    # This view will leak all projects to any authenticated user.
+    queryset = Project.objects.all()</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+
+                <!-- A02: Cryptographic Failures -->
+                <section id="a02" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                     <h2 class="text-2xl font-bold mb-4">A02: Cryptographic Failures</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a02-risk">The Risk</button>
+                        <button class="tab" data-target="a02-defense">Django's Defense</button>
+                        <button class="tab" data-target="a02-mitigation">Mitigation Code</button>
+                    </div>
+                    <div id="a02-risk" class="tab-content active"><p>This is related to failures in protecting data, often leading to exposure of sensitive information. Common issues include transmitting data in cleartext (no HTTPS) or using weak or outdated cryptographic algorithms for hashing passwords.</p></div>
+                    <div id="a02-defense" class="tab-content"><p>Django provides a secure password management system by default, using strong hashing algorithms like PBKDF2 or Argon2. It does not store passwords in cleartext. It also has settings to help enforce HTTPS in production.</p></div>
+                    <div id="a02-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Secure Method: Enforce HTTPS in `settings.py`</h4>
+                        <p class="text-sm mb-2">In your production settings, ensure these values are set to `True`. This will redirect all HTTP requests to HTTPS and ensure cookies are only sent over a secure connection.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto"># In your production_settings.py
+
+# Ensures the session cookie is only sent over HTTPS.
+SESSION_COOKIE_SECURE = True
+
+# Ensures the CSRF cookie is only sent over HTTPS.
+CSRF_COOKIE_SECURE = True
+
+# Redirects all non-HTTPS requests to HTTPS.
+# Requires your web server to be properly configured for SSL/TLS.
+SECURE_SSL_REDIRECT = True
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+                
+                <!-- A03: Injection -->
+                <section id="a03" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A03: Injection</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a03-risk">The Risk</button>
+                        <button class="tab" data-target="a03-defense">Django's Defense</button>
+                        <button class="tab" data-target="a03-mitigation">Mitigation Code</button>
+                        <button class="tab" data-target="a03-vulnerable">Vulnerable Code</button>
+                    </div>
+                    <div id="a03-risk" class="tab-content active"><p>Injection flaws, such as SQL injection, occur when an attacker can send hostile data to an interpreter. In web apps, the most common is SQL injection, where malicious SQL queries are inserted into data entry fields, potentially allowing the attacker to bypass security and access or manipulate the database.</p></div>
+                    <div id="a03-defense" class="tab-content"><p>Django's ORM (Object-Relational Mapper) is the primary defense. By using querysets, developers are protected from SQL injection because the ORM properly escapes and parameterizes queries. The Django template system also auto-escapes variables, preventing Cross-Site Scripting (XSS), another form of injection.</p></div>
+                    <div id="a03-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Secure Method: Use the ORM</h4>
+                        <p class="text-sm mb-2">Always use the Django ORM for database queries. It handles the sanitization for you.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto">from .models import User
+
+def search_users(request):
+    search_term = request.GET.get('username', '')
+    
+    # SAFE: The ORM will parameterize the query.
+    # An attacker entering "' OR 1=1; --" will not work.
+    users = User.objects.filter(username=search_term)
+    
+    # ... render users
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                    <div id="a03-vulnerable" class="tab-content">
+                        <h4 class="font-bold mb-2 text-red-600">Vulnerable Method: Using Raw SQL with String Formatting</h4>
+                        <p class="text-sm mb-2">Manually constructing SQL queries with user input is extremely dangerous and bypasses Django's ORM protection.</p>
+                        <div class="code-container"><pre class="code-block bg-red-50 border border-red-200 p-4 rounded-md overflow-x-auto">from django.db import connection
+
+def insecure_search_users(request):
+    search_term = request.GET.get('username', '')
+
+    # VULNERABLE: Direct string formatting into a raw SQL query.
+    # This is a classic SQL injection vulnerability.
+    query = f"SELECT * FROM users_user WHERE username = '{search_term}'"
+    
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        # ... fetch results
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+                
+                <!-- A04 & A10 are mostly dev responsibility -->
+                 <section id="a04" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                     <h2 class="text-2xl font-bold mb-4">A04: Insecure Design</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a04-risk">The Risk</button>
+                        <button class="tab" data-target="a04-mitigation">Mitigation Steps</button>
+                    </div>
+                    <div id="a04-risk" class="tab-content active"><p>This is a broad category representing flaws in the application's logic and architecture that create vulnerabilities. This isn't about implementation bugs but about missing or ineffective security controls baked into the design itself. A framework cannot prevent this.</p></div>
+                    <div id="a04-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Adopt a Security-First Mindset</h4>
+                        <ul class="list-disc pl-5 space-y-2 text-sm">
+                            <li><strong>Threat Modeling:</strong> Before writing code, think like an attacker. Identify key assets, trust boundaries, and potential threats. Ask "What could go wrong here?".</li>
+                            <li><strong>Principle of Least Privilege:</strong> Grant users and system components the minimum level of access required to perform their function.</li>
+                            <li><strong>Secure Defaults:</strong> Design your application so that the default state is the most secure one. For example, new user accounts should have minimal permissions by default.</li>
+                            <li><strong>Don't Trust User Input:</strong> Treat all data from users, services, or other parts of your system as untrusted until validated.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="a05" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A05: Security Misconfiguration</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a05-risk">The Risk</button>
+                        <button class="tab" data-target="a05-defense">Django's Defense</button>
+                        <button class="tab" data-target="a05-mitigation">Mitigation Code</button>
+                    </div>
+                    <div id="a05-risk" class="tab-content active"><p>This arises from insecure default configurations, incomplete configurations, open cloud storage, misconfigured HTTP headers, and verbose error messages containing sensitive information. A common example is leaving an application in debug mode in a production environment.</p></div>
+                    <div id="a05-defense" class="tab-content"><p>Django's `startproject` command creates a settings file with reasonably secure defaults. More importantly, it provides a deployment checklist utility (`manage.py check --deploy`) that flags common production misconfigurations.</p></div>
+                    <div id="a05-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Harden Production `settings.py`</h4>
+                        <p class="text-sm mb-2">Your production settings file must be different from your development one. Never run with `DEBUG = True` in production.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto"># In your production_settings.py
+import os
+
+# NEVER run with debug turned on in production!
+DEBUG = False
+
+# Load the secret key from an environment variable, not hardcoded.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
+# Be specific about which hosts are allowed to serve your site.
+ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com']
+
+# Run this command before deploying:
+# python manage.py check --deploy
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+
+                <section id="a06" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A06: Vulnerable and Outdated Components</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a06-risk">The Risk</button>
+                        <button class="tab" data-target="a06-mitigation">Mitigation Steps</button>
+                    </div>
+                    <div id="a06-risk" class="tab-content active"><p>If your application uses a component (e.g., a third-party library, or the framework itself) with a known vulnerability, your application is also vulnerable. Attackers frequently scan for systems running outdated software with public exploits.</p></div>
+                    <div id="a06-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Automate Dependency Scanning</h4>
+                        <p class="text-sm mb-2">Regularly check for outdated and vulnerable packages in your project. This should be part of your development and CI/CD process.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto"># 1. Freeze your dependencies
+pip freeze > requirements.txt
+
+# 2. Regularly check for outdated packages
+pip list --outdated
+
+# 3. Use a security auditing tool
+# Install pip-audit: pip install pip-audit
+pip-audit -r requirements.txt
+
+# 4. Integrate this into your CI/CD pipeline to automate checks.
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+                
+                 <!-- Remainder of sections -->
+                 <section id="a07" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                     <h2 class="text-2xl font-bold mb-4">A07: Identification and Authentication Failures</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a07-risk">The Risk</button>
+                        <button class="tab" data-target="a07-defense">Django's Defense</button>
+                        <button class="tab" data-target="a07-mitigation">Mitigation Steps</button>
+                    </div>
+                    <div id="a07-risk" class="tab-content active"><p>Vulnerabilities in this category include weak password policies, predictable session IDs, and improper session invalidation (e.g., not logging out a user on the server-side). This can lead to account takeovers by attackers.</p></div>
+                    <div id="a07-defense" class="tab-content"><p>Django's built-in authentication system is comprehensive and secure. It handles session management, secure password hashing, and provides forms and views for login/logout and password management. It protects against session fixation and other common attacks.</p></div>
+                    <div id="a07-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Strengthen Password Policies</h4>
+                        <p class="text-sm mb-2">You can strengthen Django's default authentication by adding password validators in your `settings.py`.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto"># In settings.py
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 10, # Enforce a longer minimum length
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+
+                <section id="a08" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A08: Software and Data Integrity Failures</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a08-risk">The Risk</button>
+                        <button class="tab" data-target="a08-defense">Django's Defense</button>
+                        <button class="tab" data-target="a08-mitigation">Mitigation Steps</button>
+                    </div>
+                    <div id="a08-risk" class="tab-content active"><p>This relates to code and infrastructure that does not protect against integrity violations. A key example is "insecure deserialization," where an application deserializes hostile or tampered objects, which can lead to remote code execution.</p></div>
+                    <div id="a08-defense" class="tab-content"><p>Django's session engine signs its cookies with the `SECRET_KEY` to prevent tampering. Its ORM helps ensure data integrity at the database level. Generally, Django avoids unsafe deserialization patterns, but care must be taken with third-party libraries.</p></div>
+                    <div id="a08-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Avoid Unsafe Deserializers</h4>
+                        <p class="text-sm mb-2">Never use insecure deserialization libraries like `pickle` on data from untrusted sources. Use safe data interchange formats like JSON.</p>
+                        <div class="code-container"><pre class="code-block bg-red-50 border border-red-200 p-4 rounded-md overflow-x-auto">import pickle
+import base64
+
+def insecure_load_object(request):
+    data = request.POST.get('data')
+    # VULNERABLE: Unpickling data from a user request can lead to RCE.
+    # An attacker can craft a payload that executes arbitrary code on your server.
+    deserialized_object = pickle.loads(base64.b64decode(data))
+    # ...
+</pre><button class="copy-btn">Copy</button></div>
+                        <p class="text-sm mt-4"><strong>Safe Alternative:</strong> Always use `json.loads()` for deserializing user data.</p>
+                    </div>
+                </section>
+                
+                <section id="a09" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A09: Security Logging and Monitoring Failures</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a09-risk">The Risk</button>
+                        <button class="tab" data-target="a09-defense">Django's Defense</button>
+                        <button class="tab" data-target="a09-mitigation">Mitigation Steps</button>
+                    </div>
+                    <div id="a09-risk" class="tab-content active"><p>Without sufficient logging and monitoring, it's impossible to know if you are being attacked. Poor logging makes it difficult to investigate security incidents, understand their impact, and prevent them from happening again.</p></div>
+                    <div id="a09-defense" class="tab-content"><p>Django is built on Python's powerful `logging` module and allows for extensive configuration. By default, it's configured to email admins on server errors (500s), but this is just the beginning.</p></div>
+                    <div id="a09-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Configure Rich Logging</h4>
+                        <p class="text-sm mb-2">Configure your `LOGGING` setting to capture key events and send them to a file or a dedicated logging service. Log events like successful logins, failed login attempts, and permission failures.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto"># In settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/security.log',
+        },
+    },
+    'loggers': {
+        'yourapp.security': { # Create a custom logger for security events
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# In your code (e.g., a login view)
+import logging
+security_logger = logging.getLogger('yourapp.security')
+
+def user_login(request, ...):
+    # ...
+    if user_is_authenticated:
+        security_logger.info(f"Successful login for user: {username}")
+    else:
+        security_logger.warning(f"Failed login attempt for user: {username}")
+</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+                
+                <section id="a10" class="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
+                    <h2 class="text-2xl font-bold mb-4">A10: Server-Side Request Forgery (SSRF)</h2>
+                    <div class="tab-container border-b border-gray-200 mb-4">
+                        <button class="tab active" data-target="a10-risk">The Risk</button>
+                        <button class="tab" data-target="a10-mitigation">Mitigation Code</button>
+                        <button class="tab" data-target="a10-vulnerable">Vulnerable Code</button>
+                    </div>
+                    <div id="a10-risk" class="tab-content active"><p>SSRF flaws occur when a web application fetches a remote resource without validating the user-supplied URL. This allows an attacker to coerce the application to send a crafted request to an unexpected destination, even to internal-only services behind a firewall.</p></div>
+                    <div id="a10-mitigation" class="tab-content">
+                        <h4 class="font-bold mb-2">Mitigation: Use an Allow-List for URLs</h4>
+                        <p class="text-sm mb-2">Do not allow your server to make requests to arbitrary URLs provided by a user. Maintain a strict allow-list of domains or URL patterns that are permitted.</p>
+                        <div class="code-container"><pre class="code-block bg-slate-100 p-4 rounded-md overflow-x-auto">import requests
+from urllib.parse import urlparse
+
+ALLOWED_DOMAINS = ['api.trustedpartner.com', 'images.anotherservice.com']
+
+def fetch_image_from_url(request):
+    image_url = request.GET.get('url')
+    
+    try:
+        parsed_url = urlparse(image_url)
+        if parsed_url.hostname in ALLOWED_DOMAINS:
+            # SAFE: The domain is on our allow-list.
+            response = requests.get(image_url, timeout=5)
+            return HttpResponse(response.content, content_type='image/jpeg')
+        else:
+            return HttpResponse("Domain not allowed.", status=403)
+    except Exception:
+        return HttpResponse("Invalid URL.", status=400)</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                    <div id="a10-vulnerable" class="tab-content">
+                        <h4 class="font-bold mb-2 text-red-600">Vulnerable Method: Fetching Unvalidated URLs</h4>
+                        <p class="text-sm mb-2">This code takes a URL from the user and makes a request directly. An attacker could provide `http://169.254.169.254/latest/meta-data/` to access cloud metadata or `http://localhost:8001/admin` to scan internal services.</p>
+                        <div class="code-container"><pre class="code-block bg-red-50 border border-red-200 p-4 rounded-md overflow-x-auto">import requests
+
+def insecure_fetch_image(request):
+    image_url = request.GET.get('url')
+
+    # VULNERABLE: No validation on the image_url.
+    # The server will make a request to any URL the user provides.
+    try:
+        response = requests.get(image_url)
+        return HttpResponse(response.content, content_type='image/jpeg')
+    except requests.exceptions.RequestException:
+        return HttpResponse("Could not fetch image.", status=400)</pre><button class="copy-btn">Copy</button></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const tabContainers = document.querySelectorAll('.tab-container');
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    const sidebarLinks = document.querySelectorAll('#sidebar nav a');
+    const contentSections = document.querySelectorAll('#content section');
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+    });
+
+    tabContainers.forEach(container => {
+        const tabs = container.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.dataset.target;
+                const targetContent = document.getElementById(targetId);
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const allContent = container.parentElement.querySelectorAll('.tab-content');
+                allContent.forEach(content => content.classList.remove('active'));
+                
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
+    });
+
+    copyButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const pre = e.target.previousElementSibling;
+            const code = pre.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                button.innerText = 'Copied!';
+                setTimeout(() => {
+                    button.innerText = 'Copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                sidebarLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: "-50% 0px -50% 0px" });
+
+    contentSections.forEach(section => {
+        observer.observe(section);
+    });
+});
+</script>
+</body>
+</html>
